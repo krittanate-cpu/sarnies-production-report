@@ -121,6 +121,10 @@
   td.neg{color:var(--down);font-weight:600}
   .partial-tag{font-size:10px;color:var(--accent-ink);border:1px solid var(--accent-soft);
     background:var(--accent-soft);border-radius:5px;padding:1px 5px;font-weight:600;letter-spacing:.02em}
+  .prodstats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+  @media(max-width:820px){.prodstats{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:460px){.prodstats{grid-template-columns:1fr}}
+  .prodstats .kpi{background:var(--paper-2);box-shadow:none}
   .growthcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
   @media(max-width:820px){.growthcards{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:460px){.growthcards{grid-template-columns:1fr}}
@@ -240,6 +244,27 @@
   </section>
 
   <section class="card">
+    <div class="sechead">
+      <h2>Productivity &amp; Revenue</h2>
+      <span class="note">Headcount productivity and wholesale revenue · MB = million Baht · revenue tracked from Jul 2025</span>
+    </div>
+    <div class="prodstats" id="prodStats"></div>
+    <div class="controls">
+      <div class="seg" id="prodMetricSeg" role="group" aria-label="Select metric">
+        <button data-prodmetric="whrev" aria-pressed="true">Wholesale Revenue (MB)</button>
+        <button data-prodmetric="revhc" aria-pressed="false">Revenue per HC (MB)</button>
+        <button data-prodmetric="kghc" aria-pressed="false">KG per HC</button>
+      </div>
+      <div class="seg" id="prodGrowthSeg" role="group" aria-label="Select growth view">
+        <button data-prodgrowth="mom" aria-pressed="true">MoM</button>
+        <button data-prodgrowth="yoy" aria-pressed="false">YoY</button>
+      </div>
+    </div>
+    <div class="chartbox"><svg class="chart" id="prodChart" viewBox="0 0 960 360" preserveAspectRatio="xMidYMid meet" role="img"></svg></div>
+    <div class="legend" id="prodLegend"></div>
+  </section>
+
+  <section class="card">
     <div class="sechead"><h2>Key Takeaways</h2></div>
     <div class="takeaways" id="takeaways"></div>
   </section>
@@ -261,22 +286,27 @@
   var YEAR = [2025,2025,2025,2025,2025,2025,2025,2025,2025,2025,2025,2025,
               2026,2026,2026,2026,2026,2026,2026,2026];
   var MONTHNUM = [1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8];
-  var actual   = [3886,3653,4272,4303,3924,4103,4303,4608,4224,4926,5107,6122,5513,5476,5800,5687,5020,5116,6056,1424];
+  var actual   = [3886,3653,4272,4303,3924,4103,4303,4608,4224,4926,5107,6122,5513,5476,5800,5687,5020,5138,6060,4890];
   var capacity = [4800,4800,4800,4800,4800,4800,4800,4800,5600,5600,5600,5600,6000,6000,6000,6000,6000,6000,6000,6000];
-  var days     = [24,20,21,26,24,22,25,25,23,29,28,28,29,25,28,24,29,26,27,5];
-  var perday   = [162,183,203,166,163,186,172,184,184,170,182,219,190,219,207,237,173,197,224,285];
+  var days     = [24,20,21,26,24,22,25,25,23,29,28,28,29,25,28,24,29,29,28,20];
+  var perday   = [162,183,203,166,163,186,172,184,184,170,182,219,190,219,207,237,173,177,216,245];
   var utilPct  = actual.map(function(a,i){return a/capacity[i]*100;});
-  var PARTIAL_IDX = 19; // Aug 2026 incomplete
+  var PARTIAL_IDX = 19; // Aug 2026 incomplete (month still in progress)
+
+  // Productivity & revenue (HC = headcount, MB = million Baht). Revenue tracked from Jul 2025.
+  var kgHC  = [777,731,854,861,785,821,861,922,845,821,851,1020,919,913,967,948,837,856,1010,815];
+  var whRev = [null,null,null,null,null,null,2.28,2.85,2.28,2.90,2.62,3.69,2.82,3.09,3.35,3.11,2.60,2.83,3.14,null];
+  var revHC = [null,null,null,null,null,null,0.46,0.57,0.46,0.58,0.52,0.74,0.56,0.62,0.67,0.62,0.52,0.57,0.63,null];
 
   var blends = {
-    "House Blend":    [2077,2111,2248,2684,2462,2337,2412,2728,2441,2830,2756,3468,3177,3019,3455,2580,2227,2348,2470,735],
-    "Hotel Blend":    [975,776,1125,833,719,802,1117,773,873,1175,1216,1584,1302,1703,1289,2235,1828,1785,2595,450],
-    "Customer Blend": [579,546,650,482,448,601,466,613,575,569,822,659,611,474,540,418,462,575,450,84],
-    "Single":         [255,220,249,304,294,362,309,495,335,353,314,412,423,281,516,453,503,408,540,155]
+    "House Blend":    [2077,2111,2248,2684,2462,2337,2412,2728,2441,2830,2756,3468,3177,3019,3455,2580,2227,2355,2470,2347],
+    "Hotel Blend":    [975,776,1125,833,719,802,1117,773,873,1175,1216,1584,1302,1703,1289,2235,1828,1785,2595,1560],
+    "Customer Blend": [579,546,650,482,448,601,466,613,575,569,822,659,611,474,540,418,462,575,450,469],
+    "Single":         [255,220,249,304,294,362,309,495,335,353,314,412,423,281,516,453,503,423,544,515]
   };
   var blendColors = {"House Blend":"var(--accent)","Hotel Blend":"#8a6d4a","Customer Blend":"#c9a06a","Single":"#6a8caf"};
-  var machS = [3212,2813,3192,3718,3354,3293,3058,3546,2942,3440,3551,4447,3893,3293,3955,3347,3160,3016,3116,749];
-  var machR = [674,840,1080,585,570,810,1245,1062,1281,1486,1556,1676,1620,2183,1845,2340,1860,2100,2940,675];
+  var machS = [3212,2813,3192,3718,3354,3293,3058,3546,2942,3440,3551,4447,3893,3293,3955,3347,3160,3038,3120,2640];
+  var machR = [674,840,1080,585,570,810,1245,1062,1281,1486,1556,1676,1620,2183,1845,2340,1860,2100,2940,2250];
   var SR_CAP = 4704, RM_CAP = 5400;
 
   var LAST = 18; // Jul 2026 = last complete month index
@@ -292,7 +322,7 @@
   function yoy(arr,i){return i<12?null:(arr[i]-arr[i-12])/arr[i-12]*100;}
 
   // ---- state ----
-  var state={metric:"volume",growth:"mom",showCap:true,showPartial:false,mix:"stack",wf:"ytd"};
+  var state={metric:"volume",growth:"mom",showCap:true,showPartial:false,mix:"stack",wf:"ytd",prodmetric:"whrev",prodgrowth:"mom"};
   var blendDesc={"House Blend":"Signature house blend","Hotel Blend":"Hotel-line blend",
     "Customer Blend":"Custom customer blends","Single":"Single origin"};
   function activeN(){return state.showPartial?20:19;} // number of columns to render
@@ -631,17 +661,102 @@
     svg.appendChild(el("line",{x1:mL+bw*12,y1:mT,x2:mL+bw*12,y2:mT+plotH,stroke:css("--accent-soft"),"stroke-width":1.5}));
   }
 
+  // ============= Productivity & Revenue =============
+  var prodMeta={
+    whrev:{arr:whRev,unit:"MB",dec:2,name:"Wholesale Revenue"},
+    revhc:{arr:revHC,unit:"MB",dec:2,name:"Revenue per HC"},
+    kghc:{arr:kgHC,unit:"",dec:0,name:"KG per HC"}
+  };
+  function pmom(a,i){return (i<1||a[i]==null||a[i-1]==null)?null:(a[i]-a[i-1])/a[i-1]*100;}
+  function pyoy(a,i){return (i<12||a[i]==null||a[i-12]==null)?null:(a[i]-a[i-12])/a[i-12]*100;}
+  function fmtNum(v,dec){return dec?v.toFixed(dec):Math.round(v).toLocaleString("en-US");}
+
+  function renderProdStats(){
+    var box=document.getElementById("prodStats");box.innerHTML="";
+    var whYtd=0;for(var i=12;i<=18;i++)whYtd+=whRev[i]||0;
+    var cards=[
+      {lab:"Wholesale Revenue · Jul 2026",val:fmtNum(whRev[18],2),unit:"MB",d:pyoy(whRev,18),dl:"YoY vs "+fmtNum(whRev[6],2)+" MB"},
+      {lab:"Revenue per HC · Jul 2026",val:fmtNum(revHC[18],2),unit:"MB",d:pyoy(revHC,18),dl:"YoY vs "+fmtNum(revHC[6],2)+" MB"},
+      {lab:"KG per HC · Jul 2026",val:fmtNum(kgHC[18],0),unit:"KG",d:pyoy(kgHC,18),dl:"YoY vs "+fmtNum(kgHC[6],0)+" KG"},
+      {lab:"Wholesale Rev · YTD 2026",val:fmtNum(whYtd,1),unit:"MB",d:null,dl:"Jan–Jul, 7 months"}
+    ];
+    cards.forEach(function(it){
+      var d=document.createElement("div");d.className="kpi";
+      var dh="";if(it.d!=null){var up=it.d>=0;dh='<span class="delta '+(up?"up":"down")+'">'+(up?"▲":"▼")+" "+pct(it.d,1)+'</span>';}
+      d.innerHTML='<span class="accentbar"></span><div class="lab">'+it.lab+'</div>'+
+        '<div class="val">'+it.val+(it.unit?'<span class="unit">'+it.unit+'</span>':'')+'</div>'+
+        '<div class="foot">'+dh+'<span>'+it.dl+'</span></div>';
+      box.appendChild(d);
+    });
+  }
+  function renderProd(){
+    renderProdStats();
+    var svg=document.getElementById("prodChart");svg.innerHTML="";
+    var W=960,H=360,mL=54,mR=20,mT=26,mB=54;
+    var n=activeN();
+    var m=prodMeta[state.prodmetric], series=m.arr;
+    var growthArr=series.map(function(_,i){return state.prodgrowth==="mom"?pmom(series,i):pyoy(series,i);});
+    var plotW=W-mL-mR, plotH=H-mT-mB, bw=plotW/n, barW=Math.min(38,bw*0.6);
+    var maxV=0;for(var i=0;i<n;i++)if(series[i]!=null)maxV=Math.max(maxV,series[i]);
+    maxV*=1.16;if(maxV<=0)maxV=1;
+    function x(i){return mL+bw*i+bw/2;}
+    function y(v){return mT+plotH-(v/maxV)*plotH;}
+    for(var g=0;g<=4;g++){var gv=maxV*g/4,gy=y(gv);
+      svg.appendChild(el("line",{x1:mL,y1:gy,x2:W-mR,y2:gy,stroke:css("--grid"),"stroke-width":1}));
+      svg.appendChild(el("text",{x:mL-8,y:gy+4,"text-anchor":"end","font-size":11,fill:css("--ink-3")},
+        m.dec?gv.toFixed(gv<10?1:0):fmt(gv)));}
+    for(var b=0;b<n;b++){
+      if(series[b]!=null){
+        var partial=(b===PARTIAL_IDX);
+        var by=y(series[b]),bh=mT+plotH-by;
+        var r=el("rect",{x:x(b)-barW/2,y:by,width:barW,height:Math.max(0,bh),rx:4,
+          fill:YEAR[b]===2026?css("--accent"):css("--bar"),opacity:partial?0.42:1,style:"cursor:pointer;transition:opacity .12s"});
+        if(partial)r.setAttribute("stroke-dasharray","3 3"),r.setAttribute("stroke",css("--accent")),r.setAttribute("stroke-width",1);
+        svg.appendChild(r);
+        var gVal=growthArr[b];
+        if(gVal!=null&&isFinite(gVal))svg.appendChild(el("text",{x:x(b),y:by-7,"text-anchor":"middle","font-size":10.5,
+          "font-weight":700,fill:gVal>=0?css("--up"):css("--down")},(gVal>=0?"+":"")+gVal.toFixed(0)+"%"));
+        (function(idx,rect){
+          rect.addEventListener("mousemove",function(e){
+            var mv=pmom(series,idx),yv=pyoy(series,idx);
+            showTip("<b>"+lbl(idx)+(idx===PARTIAL_IDX?" · partial":"")+"</b>"+
+              "<div class='r'><span class='k'>"+m.name+"</span><b>"+fmtNum(series[idx],m.dec)+(m.unit?" "+m.unit:"")+"</b></div>"+
+              (mv!=null?"<div class='r'><span class='k'>MoM</span><b style='color:"+(mv>=0?"#7fd08c":"#f0a08e")+"'>"+pct(mv,1)+"</b></div>":"")+
+              (yv!=null?"<div class='r'><span class='k'>YoY</span><b style='color:"+(yv>=0?"#7fd08c":"#f0a08e")+"'>"+pct(yv,1)+"</b></div>":""),e.clientX,e.clientY);
+            rect.setAttribute("opacity",idx===PARTIAL_IDX?0.6:0.82);
+          });
+          rect.addEventListener("mouseleave",function(){hideTip();rect.setAttribute("opacity",idx===PARTIAL_IDX?0.42:1);});
+        })(b,r);
+      }
+      svg.appendChild(el("text",{x:x(b),y:H-mB+16,"text-anchor":"middle","font-size":10,
+        fill:YEAR[b]===2026?css("--ink"):css("--ink-3"),"font-weight":YEAR[b]===2026?600:400},LABELS[b]));
+    }
+    var divx=mL+bw*12;
+    svg.appendChild(el("line",{x1:divx,y1:mT,x2:divx,y2:mT+plotH,stroke:css("--accent-soft"),"stroke-width":1.5}));
+    svg.appendChild(el("text",{x:mL+bw*6,y:mT-8,"text-anchor":"middle","font-size":11,fill:css("--ink-3"),"font-weight":600},"2025"));
+    svg.appendChild(el("text",{x:mL+bw*(12+(n-12)/2),y:mT-8,"text-anchor":"middle","font-size":11,fill:css("--accent-ink"),"font-weight":600},"2026"));
+    document.getElementById("prodLegend").innerHTML=
+      '<span class="it"><span class="swatch" style="background:var(--bar)"></span>2025</span>'+
+      '<span class="it"><span class="swatch" style="background:var(--accent)"></span>2026</span>'+
+      '<span class="it" style="color:var(--up)">▲ '+(state.prodgrowth==="mom"?"MoM":"YoY")+' up</span>'+
+      '<span class="it" style="color:var(--down)">▼ down</span>'+
+      (state.prodmetric!=="kghc"?'<span class="it" style="color:var(--ink-3)">Revenue from Jul 2025 onward</span>':'');
+  }
+
   // ============= Takeaways =============
   function renderTakeaways(){
     var box=document.getElementById("takeaways");
     var ytd26=0,ytd25=0;for(var i=12;i<=18;i++)ytd26+=actual[i];for(var j=0;j<=6;j++)ytd25+=actual[j];
     var peak=Math.max.apply(null,actual.slice(0,19));var peakI=actual.indexOf(peak);
     var hotelYoY=(blends["Hotel Blend"][18]-blends["Hotel Blend"][6])/blends["Hotel Blend"][6]*100;
+    var revYoY=(whRev[18]-whRev[6])/whRev[6]*100;
+    var kghcYoY=(kgHC[18]-kgHC[6])/kgHC[6]*100;
     var items=[
       {c:"var(--up)",h:"Sustained growth all year",t:"YTD Jan–Jul 2026 = "+fmt(ytd26)+" KG, up "+pct((ytd26-ytd25)/ytd25*100,1)+" vs prior year. Every month of 2026 posts positive YoY growth (+25% to +50%)."},
-      {c:"var(--accent)",h:"Production peak",t:lbl(peakI)+" = "+fmt(peak)+" KG, the highest on record · Jul 2026 follows at "+fmt(actual[18])+" KG."},
-      {c:"var(--bar-2)",h:"RM20 is the growth engine",t:"RM20 utilization climbed from ~12% (early 2025) to 40–54% in 2026, absorbing Hotel Blend which grew "+pct(hotelYoY,0)+" YoY."},
-      {c:"var(--down)",h:"Capacity ceiling",t:"Several months hit 95–109% Manpower utilization (Dec 25, Jul 26 over 100%) — nearing the ceiling. Plan headcount/shift expansion."}
+      {c:"var(--up)",h:"Revenue &amp; productivity up together",t:"Jul 2026 wholesale revenue "+whRev[18].toFixed(2)+" MB, up "+pct(revYoY,0)+" YoY. Output per head reached "+fmt(kgHC[18])+" KG/HC ("+pct(kghcYoY,0)+" YoY), so each person is producing more while total volume also rises."},
+      {c:"var(--accent)",h:"Production peak",t:lbl(peakI)+" = "+fmt(peak)+" KG, the highest on record. Jul 2026 follows at "+fmt(actual[18])+" KG."},
+      {c:"var(--bar-2)",h:"Hotel blend is the growth engine",t:"Hotel-line blend grew "+pct(hotelYoY,0)+" YoY and drove the majority of the gain, carried by RM20 whose utilization rose from ~12% (early 2025) to 40–54% in 2026."},
+      {c:"var(--down)",h:"Capacity ceiling",t:"Several months hit 95–109% Manpower utilization (Dec 25, Jul 26 over 100%), nearing the ceiling. Plan headcount or shift expansion to sustain the trend."}
     ];
     box.innerHTML=items.map(function(it){
       return '<div class="tk"><h3><span class="dot" style="background:'+it.c+'"></span>'+it.h+'</h3><p>'+it.t+'</p></div>';
@@ -663,9 +778,11 @@
   bindSeg("growthSeg","growth",renderMain);
   bindSeg("mixSeg","mix",renderMix);
   bindSeg("wfSeg","wf",renderGrowth);
+  bindSeg("prodMetricSeg","prodmetric",renderProd);
+  bindSeg("prodGrowthSeg","prodgrowth",renderProd);
   document.getElementById("showCap").addEventListener("change",function(e){state.showCap=e.target.checked;renderMain();});
   document.getElementById("showPartial").addEventListener("change",function(e){
-    state.showPartial=e.target.checked;renderMain();renderYoY();renderMix();renderMach();});
+    state.showPartial=e.target.checked;renderMain();renderYoY();renderMix();renderMach();renderProd();});
 
   // theme
   function currentTheme(){var r=document.documentElement.getAttribute("data-theme");
@@ -678,7 +795,7 @@
   matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){
     if(!document.documentElement.getAttribute("data-theme")){applyThemeLabel();renderAll();}});
 
-  function renderAll(){renderKPI();renderMain();renderYoY();renderGrowth();renderMix();renderMach();renderTakeaways();}
+  function renderAll(){renderKPI();renderMain();renderYoY();renderGrowth();renderMix();renderMach();renderProd();renderTakeaways();}
   applyThemeLabel();renderAll();
   window.addEventListener("resize",function(){/* svg is viewBox-scaled; tooltips reposition on hover */});
 })();

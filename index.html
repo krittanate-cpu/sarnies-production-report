@@ -157,7 +157,7 @@
     </div>
     <div class="headmeta">
       <button class="themebtn" id="themeToggle" aria-label="Toggle theme">🌗 <span id="themeLbl">Theme</span></button>
-      <span class="stamp">Data through Aug 2026 (full month)</span>
+      <span class="stamp">Data through Aug 2026 (full month) · refreshed 17 Sep 2026</span>
     </div>
   </header>
 
@@ -245,12 +245,13 @@
   <section class="card">
     <div class="sechead">
       <h2>Productivity &amp; Revenue</h2>
-      <span class="note">Headcount productivity and wholesale revenue · MB = million Baht · revenue tracked from Jul 2025 · Aug 2026 revenue not yet posted</span>
+      <span class="note">Headcount productivity, wholesale and ecommerce revenue · MB = million Baht · revenue tracked from Jul 2025 · Revenue per HC = wholesale ÷ headcount</span>
     </div>
     <div class="prodstats" id="prodStats"></div>
     <div class="controls">
       <div class="seg" id="prodMetricSeg" role="group" aria-label="Select metric">
         <button data-prodmetric="whrev" aria-pressed="true">Wholesale Revenue (MB)</button>
+        <button data-prodmetric="ecom" aria-pressed="false">Ecom Revenue (MB)</button>
         <button data-prodmetric="revhc" aria-pressed="false">Revenue per HC (MB)</button>
         <button data-prodmetric="kghc" aria-pressed="false">KG per HC</button>
       </div>
@@ -294,14 +295,16 @@
 
   // Productivity & revenue (HC = headcount, MB = million Baht). Revenue tracked from Jul 2025.
   var kgHC  = [777,731,854,861,785,821,861,922,845,821,851,1020,919,913,967,948,837,856,1011,1088];
-  var whRev = [null,null,null,null,null,null,2.28,2.85,2.28,2.90,2.62,3.69,2.82,3.09,3.35,3.11,2.60,2.83,3.14,null];
-  var revHC = [null,null,null,null,null,null,0.46,0.57,0.46,0.48,0.44,0.61,0.47,0.52,0.56,0.52,0.43,0.47,0.52,null];
+  var whRev = [null,null,null,null,null,null,2.28,2.85,2.28,2.90,2.62,3.69,2.82,3.09,3.35,3.11,2.60,2.83,3.14,3.29];
+  var revHC = [null,null,null,null,null,null,0.46,0.57,0.46,0.48,0.44,0.61,0.47,0.52,0.56,0.52,0.43,0.47,0.52,0.55];
+  // Ecommerce revenue (MB), sheet row "Ecom Revenue (MB)" — tracked from Jul 2025
+  var ecomRev = [null,null,null,null,null,null,0.16,0.19,0.16,0.20,0.21,0.24,0.33,0.32,0.43,0.35,0.47,0.42,0.36,0.41];
 
   var blends = {
-    "House Blend":    [2077,2111,2248,2684,2462,2337,2412,2728,2441,2830,2756,3468,3177,3019,3455,2580,2227,2355,2435,3286],
+    "House Blend":    [2077,2111,2248,2684,2462,2337,2412,2728,2441,2830,2756,3468,3177,3019,3455,2580,2227,2355,2435,3293],
     "Hotel Blend":    [975,776,1125,833,719,802,1117,773,873,1175,1216,1584,1302,1703,1289,2235,1828,1785,2595,1920],
     "Customer Blend": [579,546,650,482,448,601,466,613,575,569,822,659,611,474,540,418,462,575,485,620],
-    "Single":         [255,220,249,304,294,362,309,495,335,353,314,412,423,281,516,453,503,423,548,701]
+    "Single":         [255,220,249,304,294,362,309,495,335,353,314,412,423,281,516,453,503,423,548,694]
   };
   var blendColors = {"House Blend":"var(--accent)","Hotel Blend":"#8a6d4a","Customer Blend":"#c9a06a","Single":"#6a8caf"};
   var machS = [3212,2813,3192,3718,3354,3293,3058,3546,2942,3440,3551,4447,3893,3293,3955,3347,3160,3038,3124,3602];
@@ -664,6 +667,7 @@
   // ============= Productivity & Revenue =============
   var prodMeta={
     whrev:{arr:whRev,unit:"MB",dec:2,name:"Wholesale Revenue"},
+    ecom:{arr:ecomRev,unit:"MB",dec:2,name:"Ecom Revenue"},
     revhc:{arr:revHC,unit:"MB",dec:2,name:"Revenue per HC"},
     kghc:{arr:kgHC,unit:"",dec:0,name:"KG per HC"}
   };
@@ -755,11 +759,14 @@
     var hotelShare=(hotelYtd26-hotelYtd25)/(ytd26-ytd25)*100;
     var R=REV_LAST;
     var revYoY=(whRev[R]-whRev[R-12])/whRev[R-12]*100;
+    var ecomYoY=(ecomRev[R]-ecomRev[R-12])/ecomRev[R-12]*100;
+    var volYoY=(actual[R]-actual[R-12])/actual[R-12]*100;
+    var bpk25=whRev[R-12]*1e6/actual[R-12], bpk26=whRev[R]*1e6/actual[R];
     var kghcYoY=(kgHC[19]-kgHC[7])/kgHC[7]*100;
     var items=[
       {c:"var(--up)",h:"Sustained growth all year",t:"YTD Jan–Aug 2026 = "+fmt(ytd26)+" KG, up "+pct((ytd26-ytd25)/ytd25*100,1)+" vs prior year. All eight months of 2026 post positive YoY growth (+25% to +50%)."},
       {c:"var(--accent)",h:"New production record",t:lbl(peakI)+" = "+fmt(peak)+" KG, the highest month on record, "+pct((peak-second)/second*100,1)+" above the previous peak ("+lbl(secondI)+", "+fmt(second)+" KG). Output per head hit "+fmt(kgHC[19])+" KG/HC ("+pct(kghcYoY,0)+" YoY)."},
-      {c:"var(--up)",h:"Revenue tracking volume",t:lbl(R)+" wholesale revenue "+whRev[R].toFixed(2)+" MB, up "+pct(revYoY,0)+" YoY. Aug 2026 revenue is not posted yet, so the revenue view still ends at "+lbl(R)+" while volume runs through Aug."},
+      {c:"var(--bar-2)",h:"Revenue lags volume growth",t:lbl(R)+" wholesale revenue "+whRev[R].toFixed(2)+" MB, "+pct(revYoY,0)+" YoY, against "+pct(volYoY,0)+" on volume. Wholesale Baht per roasted KG went "+fmt(bpk25)+" \u2192 "+fmt(bpk26)+" ("+pct((bpk26-bpk25)/bpk25*100,0)+"). Roast volume serves wholesale, FOH transfer and ecommerce while this line counts wholesale only \u2014 check the channel split before reading it as a price move. Ecommerce added "+ecomRev[R].toFixed(2)+" MB ("+pct(ecomYoY,0)+" YoY)."},
       {c:"var(--bar-2)",h:"Hotel blend is the growth engine",t:"Hotel-line blend went "+fmt(hotelYtd25)+" → "+fmt(hotelYtd26)+" KG YTD ("+pct((hotelYtd26-hotelYtd25)/hotelYtd25*100,0)+"), contributing "+pct(hotelShare,0).replace("+","")+" of total YTD growth, carried by RM20 whose utilization rose from ~12% (early 2025) to 54% in Jul–Aug 26."},
       {c:"var(--down)",h:"Capacity ceiling reached",t:"Aug 26 ran at "+utilPct[19].toFixed(0)+"% of Manpower capacity, matching the Dec 25 peak, with Jul 26 at "+utilPct[18].toFixed(0)+"%. Two straight months over 100% — headcount or a shift expansion is now the binding constraint."}
     ];

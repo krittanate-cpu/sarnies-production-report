@@ -157,7 +157,7 @@
     </div>
     <div class="headmeta">
       <button class="themebtn" id="themeToggle" aria-label="Toggle theme">🌗 <span id="themeLbl">Theme</span></button>
-      <span class="stamp">Data through Aug 2026 (full month) · refreshed 17 Sep 2026</span>
+      <span class="stamp">Data through Sep 2026 (full month) · Sep revenue posts after 10 Oct · refreshed 3 Oct 2026</span>
     </div>
   </header>
 
@@ -206,8 +206,8 @@
     </div>
     <div class="controls">
       <div class="seg" id="wfSeg" role="group" aria-label="Growth period">
-        <button data-wf="ytd" aria-pressed="true">YTD Jan–Aug</button>
-        <button data-wf="latest" aria-pressed="false">Latest month (Aug)</button>
+        <button data-wf="ytd" aria-pressed="true" id="wfYtdBtn">YTD Jan–Sep</button>
+        <button data-wf="latest" aria-pressed="false" id="wfLatestBtn">Latest month (Sep)</button>
       </div>
       <span class="note" style="align-self:center">Bridge from prior-year base to this year, split by product group</span>
     </div>
@@ -282,36 +282,36 @@
   "use strict";
   // ---- data (from Roasting report · Production Report tab) ----
   var LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec",
-                "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug"];
+                "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep"];
   var YEAR = [2025,2025,2025,2025,2025,2025,2025,2025,2025,2025,2025,2025,
-              2026,2026,2026,2026,2026,2026,2026,2026];
-  var MONTHNUM = [1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8];
-  var actual   = [3886,3653,4272,4303,3924,4103,4303,4608,4224,4926,5107,6122,5513,5476,5800,5687,5020,5138,6064,6527];
-  var capacity = [4800,4800,4800,4800,4800,4800,4800,4800,5600,5600,5600,5600,6000,6000,6000,6000,6000,6000,6000,6000];
-  var days     = [24,20,21,26,24,22,25,25,23,29,28,28,29,25,28,24,29,29,29,27];
-  var perday   = [162,183,203,166,163,186,172,184,184,170,182,219,190,219,207,237,173,177,209,242];
+              2026,2026,2026,2026,2026,2026,2026,2026,2026];
+  var MONTHNUM = [1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9];
+  var actual   = [3886,3653,4272,4303,3924,4103,4303,4608,4228,4926,5107,6122,5513,5476,5800,5687,5020,5138,6066,6547,6048];
+  var capacity = [4800,4800,4800,4800,4800,4800,4800,4800,5600,5600,5600,5600,6000,6000,6000,6000,6000,6000,6000,6000,6000];
+  var days     = [24,20,21,26,24,22,25,25,24,29,28,28,29,25,28,24,29,29,30,30,25];
+  var perday   = [162,183,203,166,163,186,172,184,176,170,182,219,190,219,207,237,173,177,202,218,242];
   var utilPct  = actual.map(function(a,i){return a/capacity[i]*100;});
-  var PARTIAL_IDX = -1; // no partial month — Aug 2026 is complete
+  var PARTIAL_IDX = -1; // no partial month: Sep 2026 is complete
 
   // Productivity & revenue (HC = headcount, MB = million Baht). Revenue tracked from Jul 2025.
-  var kgHC  = [777,731,854,861,785,821,861,922,845,821,851,1020,919,913,967,948,837,856,1011,1088];
-  var whRev = [null,null,null,null,null,null,2.28,2.85,2.28,2.90,2.62,3.69,2.82,3.09,3.35,3.11,2.60,2.83,3.14,3.29];
-  var revHC = [null,null,null,null,null,null,0.46,0.57,0.46,0.48,0.44,0.61,0.47,0.52,0.56,0.52,0.43,0.47,0.52,0.55];
+  var kgHC  = [777,731,854,861,785,821,861,922,846,821,851,1020,919,913,967,948,837,856,1011,1091,1008];
+  var whRev = [null,null,null,null,null,null,2.28,2.85,2.28,2.90,2.62,3.69,2.82,3.09,3.35,3.11,2.60,2.83,3.14,3.29,null];
+  var revHC = [null,null,null,null,null,null,0.46,0.57,0.46,0.48,0.44,0.61,0.47,0.52,0.56,0.52,0.43,0.47,0.52,0.55,null];
   // Ecommerce revenue (MB), sheet row "Ecom Revenue (MB)" — tracked from Jul 2025
-  var ecomRev = [null,null,null,null,null,null,0.16,0.19,0.16,0.20,0.21,0.24,0.33,0.32,0.43,0.35,0.47,0.42,0.36,0.41];
+  var ecomRev = [null,null,null,null,null,null,0.16,0.19,0.16,0.20,0.21,0.24,0.33,0.32,0.43,0.35,0.47,0.42,0.36,0.41,null];
 
   var blends = {
-    "House Blend":    [2077,2111,2248,2684,2462,2337,2412,2728,2441,2830,2756,3468,3177,3019,3455,2580,2227,2355,2435,3293],
-    "Hotel Blend":    [975,776,1125,833,719,802,1117,773,873,1175,1216,1584,1302,1703,1289,2235,1828,1785,2595,1920],
-    "Customer Blend": [579,546,650,482,448,601,466,613,575,569,822,659,611,474,540,418,462,575,485,620],
-    "Single":         [255,220,249,304,294,362,309,495,335,353,314,412,423,281,516,453,503,423,548,694]
+    "House Blend":    [2077,2111,2248,2684,2462,2337,2412,2728,2441,2830,2756,3468,3177,3019,3455,2580,2227,2355,2435,3293,2531],
+    "Hotel Blend":    [975,776,1125,833,719,802,1117,773,873,1175,1216,1584,1302,1703,1289,2235,1828,1785,2595,1920,2342],
+    "Customer Blend": [579,546,650,482,448,601,466,613,579,569,822,659,611,474,540,418,462,575,487,620,710],
+    "Single":         [255,220,249,304,294,362,309,495,335,353,314,412,423,281,516,453,503,423,549,714,465]
   };
   var blendColors = {"House Blend":"var(--accent)","Hotel Blend":"#8a6d4a","Customer Blend":"#c9a06a","Single":"#6a8caf"};
-  var machS = [3212,2813,3192,3718,3354,3293,3058,3546,2942,3440,3551,4447,3893,3293,3955,3347,3160,3038,3124,3602];
-  var machR = [674,840,1080,585,570,810,1245,1062,1281,1486,1556,1676,1620,2183,1845,2340,1860,2100,2940,2925];
+  var machS = [3212,2813,3192,3718,3354,3293,3058,3546,2946,3440,3551,4447,3893,3293,3955,3347,3160,3038,3126,3622,2626];
+  var machR = [674,840,1080,585,570,810,1245,1062,1281,1486,1556,1676,1620,2183,1845,2340,1860,2100,2940,2925,3422];
   var SR_CAP = 4704, RM_CAP = 5400;
 
-  var LAST = 19; // Aug 2026 = last complete month index
+  var LAST = 20; // Sep 2026 = last complete month index. Next month: append data, bump LAST, nothing else.
   var REV_LAST = (function(){for(var i=LAST;i>=0;i--)if(whRev[i]!=null)return i;return 0;})(); // last month with revenue posted
 
   // ---- helpers ----
@@ -328,7 +328,7 @@
   var state={metric:"volume",growth:"mom",showCap:true,showPartial:true,mix:"stack",wf:"ytd",prodmetric:"whrev",prodgrowth:"mom"};
   var blendDesc={"House Blend":"Signature house blend","Hotel Blend":"Hotel-line blend",
     "Customer Blend":"Custom customer blends","Single":"Single origin"};
-  function activeN(){return 20;} // number of columns to render (Jan 25 – Aug 26)
+  function activeN(){return LAST+1;} // number of columns to render
 
   var tip=document.getElementById("tip");
   function showTip(html,x,y){tip.innerHTML=html;tip.classList.add("on");
@@ -340,13 +340,14 @@
   // ================= KPI =================
   function renderKPI(){
     var box=document.getElementById("kpis");box.innerHTML="";
-    var aug26=actual[19], jul26=actual[18], aug25=actual[7];
-    var ytd26=0,ytd25=0;for(var i=12;i<=19;i++)ytd26+=actual[i];for(var j=0;j<=7;j++)ytd25+=actual[j];
-    var util26=0,c=0;for(var k=12;k<=19;k++){util26+=utilPct[k];c++;}util26/=c;
+    var cur=actual[LAST], prv=actual[LAST-1], ly=actual[LAST-12];
+    var ytd26=0,ytd25=0;for(var i=12;i<=LAST;i++)ytd26+=actual[i];for(var j=0;j<=LAST-12;j++)ytd25+=actual[j];
+    var util26=0,c=0;for(var k=12;k<=LAST;k++){util26+=utilPct[k];c++;}util26/=c;
+    var M=LABELS[LAST], Y=String(YEAR[LAST]), y2=Y.slice(2);
     var items=[
-      {lab:"Latest month · Aug 2026",val:fmt(aug26),unit:"KG",d:(aug26-jul26)/jul26*100,dl:"MoM vs Jul"},
-      {lab:"YoY · Aug 26 vs Aug 25",val:pct((aug26-aug25)/aug25*100,1),unit:"",d:(aug26-aug25)/aug25*100,dl:fmt(aug25)+" → "+fmt(aug26)+" KG",raw:true},
-      {lab:"YTD Jan–Aug 2026",val:fmt(ytd26),unit:"KG",d:(ytd26-ytd25)/ytd25*100,dl:"vs "+fmt(ytd25)+" prior year"},
+      {lab:"Latest month · "+M+" "+Y,val:fmt(cur),unit:"KG",d:(cur-prv)/prv*100,dl:"MoM vs "+LABELS[LAST-1]},
+      {lab:"YoY · "+M+" "+y2+" vs "+M+" "+(Number(y2)-1),val:pct((cur-ly)/ly*100,1),unit:"",d:(cur-ly)/ly*100,dl:fmt(ly)+" → "+fmt(cur)+" KG",raw:true},
+      {lab:"YTD Jan–"+M+" "+Y,val:fmt(ytd26),unit:"KG",d:(ytd26-ytd25)/ytd25*100,dl:"vs "+fmt(ytd25)+" prior year"},
       {lab:"Avg utilization 2026",val:util26.toFixed(0),unit:"%",d:null,dl:"of Manpower capacity"}
     ];
     items.forEach(function(it){
@@ -409,7 +410,7 @@
           fill:up?css("--up"):css("--down")}, (up?"+":"")+gVal.toFixed(0)+"%"));
       }
       // x labels
-      var showLab = n<=20;
+      var showLab = n<=24;
       if(showLab){
         svg.appendChild(el("text",{x:x(b),y:H-mB+16,"text-anchor":"middle","font-size":10,
           fill:YEAR[b]===2026?css("--ink"):css("--ink-3"),"font-weight":YEAR[b]===2026?600:400},LABELS[b]));
@@ -448,7 +449,7 @@
   function renderYoY(){
     var svg=document.getElementById("yoyChart");svg.innerHTML="";
     var W=960,H=340,mL=52,mR=20,mT=28,mB=44;
-    var months=8; // Jan..Aug, both years complete
+    var months=LAST-11; // Jan..latest month, both years complete
     var plotW=W-mL-mR, plotH=H-mT-mB;
     var gw=plotW/months, barW=Math.min(20,gw*0.32), gap=4;
     var maxV=0;for(var m=0;m<months;m++){maxV=Math.max(maxV,actual[m],actual[12+m]);}maxV*=1.16;
@@ -485,12 +486,12 @@
   }
 
   // ============= Growth drivers (waterfall) =============
-  function ytd(arr,y){var s=0,st=y?12:0;for(var i=st;i<st+8;i++)s+=arr[i];return s;}
+  function ytd(arr,y){var s=0,st=y?12:0;for(var i=st;i<st+(LAST-11);i++)s+=arr[i];return s;}
   function segData(mode){
     return Object.keys(blends).map(function(k){
       var base,cur;
       if(mode==="ytd"){base=ytd(blends[k],0);cur=ytd(blends[k],1);}
-      else{base=blends[k][7];cur=blends[k][19];}
+      else{base=blends[k][LAST-12];cur=blends[k][LAST];}
       return {name:k,base:base,cur:cur,delta:cur-base,pct:(cur-base)/base*100,color:blendColors[k]};
     });
   }
@@ -501,7 +502,7 @@
     var base=segs.reduce(function(s,x){return s+x.base;},0);
     var end=segs.reduce(function(s,x){return s+x.cur;},0);
     var totalDelta=end-base;
-    var periodLabel=mode==="ytd"?"YTD Jan–Aug":"Aug";
+    var periodLabel=mode==="ytd"?"YTD Jan–"+LABELS[LAST]:LABELS[LAST];
     document.getElementById("wfNote").textContent=
       "2025 "+periodLabel+" = "+fmt(base)+" KG → 2026 = "+fmt(end)+" KG  ("+pct(totalDelta/base*100,1)+", "+(totalDelta>=0?"+":"")+fmt(totalDelta)+" KG)";
 
@@ -623,7 +624,7 @@
           });rect.addEventListener("mouseleave",hideTip);
         })(k,rect,raw);
       });
-      if(b%2===0||n<=20)svg.appendChild(el("text",{x:x(b),y:H-mB+16,"text-anchor":"middle","font-size":9.5,fill:css("--ink-3")},LABELS[b]));
+      if(b%2===0||n<=24)svg.appendChild(el("text",{x:x(b),y:H-mB+16,"text-anchor":"middle","font-size":9.5,fill:css("--ink-3")},LABELS[b]));
     }
     var divx=mL+bw*12;
     svg.appendChild(el("line",{x1:divx,y1:mT,x2:divx,y2:mT+plotH,stroke:css("--accent-soft"),"stroke-width":1.5}));
@@ -659,7 +660,7 @@
             '<div class="r"><span class="k">Utilization</span><b>'+ser.a[idx].toFixed(0)+"%</b></div>",e.clientX,e.clientY);
         });dot.addEventListener("mouseleave",hideTip);})(i,s);
       });
-      if(i%2===0||n<=20)svg.appendChild(el("text",{x:x(i),y:H-mB+16,"text-anchor":"middle","font-size":9.5,fill:css("--ink-3")},LABELS[i]));
+      if(i%2===0||n<=24)svg.appendChild(el("text",{x:x(i),y:H-mB+16,"text-anchor":"middle","font-size":9.5,fill:css("--ink-3")},LABELS[i]));
     }
     svg.appendChild(el("line",{x1:mL+bw*12,y1:mT,x2:mL+bw*12,y2:mT+plotH,stroke:css("--accent-soft"),"stroke-width":1.5}));
   }
@@ -751,9 +752,9 @@
   // ============= Takeaways =============
   function renderTakeaways(){
     var box=document.getElementById("takeaways");
-    var ytd26=0,ytd25=0;for(var i=12;i<=19;i++)ytd26+=actual[i];for(var j=0;j<=7;j++)ytd25+=actual[j];
-    var peak=Math.max.apply(null,actual.slice(0,20));var peakI=actual.indexOf(peak);
-    var prev=actual.slice(0,20).filter(function(v,i){return i!==peakI;});
+    var ytd26=0,ytd25=0;for(var i=12;i<=LAST;i++)ytd26+=actual[i];for(var j=0;j<=LAST-12;j++)ytd25+=actual[j];
+    var peak=Math.max.apply(null,actual.slice(0,LAST+1));var peakI=actual.indexOf(peak);
+    var prev=actual.slice(0,LAST+1).filter(function(v,i){return i!==peakI;});
     var second=Math.max.apply(null,prev);var secondI=actual.indexOf(second);
     var hotelYtd25=ytd(blends["Hotel Blend"],0), hotelYtd26=ytd(blends["Hotel Blend"],1);
     var hotelShare=(hotelYtd26-hotelYtd25)/(ytd26-ytd25)*100;
@@ -762,13 +763,21 @@
     var ecomYoY=(ecomRev[R]-ecomRev[R-12])/ecomRev[R-12]*100;
     var volYoY=(actual[R]-actual[R-12])/actual[R-12]*100;
     var bpk25=whRev[R-12]*1e6/actual[R-12], bpk26=whRev[R]*1e6/actual[R];
-    var kghcYoY=(kgHC[19]-kgHC[7])/kgHC[7]*100;
+    var M=LABELS[LAST], y2=String(YEAR[LAST]).slice(2), Mp=LABELS[LAST-1];
+    var yoys=[];for(var q=12;q<=LAST;q++)yoys.push((actual[q]-actual[q-12])/actual[q-12]*100);
+    var nPos=yoys.filter(function(v){return v>0;}).length;
+    var yMin=Math.min.apply(null,yoys), yMax=Math.max.apply(null,yoys);
+    var pdMax=Math.max.apply(null,perday.slice(0,LAST+1)), pdRecord=perday[LAST]===pdMax;
+    var rmU=machR[LAST]/RM_CAP*100, rmMax=Math.max.apply(null,machR.slice(0,LAST+1))===machR[LAST];
+    var run=0;for(var u=LAST;u>=0&&utilPct[u]>100;u--)run++;
+    var runTxt=["","one month","two straight months","three straight months","four straight months","five straight months"][run]||(run+" straight months");
+    var runList=[];for(var w=LAST-run+1;w<=LAST;w++)runList.push(LABELS[w]+" "+utilPct[w].toFixed(0)+"%");
     var items=[
-      {c:"var(--up)",h:"Sustained growth all year",t:"YTD Jan–Aug 2026 = "+fmt(ytd26)+" KG, up "+pct((ytd26-ytd25)/ytd25*100,1)+" vs prior year. All eight months of 2026 post positive YoY growth (+25% to +50%)."},
-      {c:"var(--accent)",h:"New production record",t:lbl(peakI)+" = "+fmt(peak)+" KG, the highest month on record, "+pct((peak-second)/second*100,1)+" above the previous peak ("+lbl(secondI)+", "+fmt(second)+" KG). Output per head hit "+fmt(kgHC[19])+" KG/HC ("+pct(kghcYoY,0)+" YoY)."},
-      {c:"var(--bar-2)",h:"Revenue lags volume growth",t:lbl(R)+" wholesale revenue "+whRev[R].toFixed(2)+" MB, "+pct(revYoY,0)+" YoY, against "+pct(volYoY,0)+" on volume. Wholesale Baht per roasted KG went "+fmt(bpk25)+" \u2192 "+fmt(bpk26)+" ("+pct((bpk26-bpk25)/bpk25*100,0)+"). Roast volume serves wholesale, FOH transfer and ecommerce while this line counts wholesale only \u2014 check the channel split before reading it as a price move. Ecommerce added "+ecomRev[R].toFixed(2)+" MB ("+pct(ecomYoY,0)+" YoY)."},
-      {c:"var(--bar-2)",h:"Hotel blend is the growth engine",t:"Hotel-line blend went "+fmt(hotelYtd25)+" → "+fmt(hotelYtd26)+" KG YTD ("+pct((hotelYtd26-hotelYtd25)/hotelYtd25*100,0)+"), contributing "+pct(hotelShare,0).replace("+","")+" of total YTD growth, carried by RM20 whose utilization rose from ~12% (early 2025) to 54% in Jul–Aug 26."},
-      {c:"var(--down)",h:"Capacity ceiling reached",t:"Aug 26 ran at "+utilPct[19].toFixed(0)+"% of Manpower capacity, matching the Dec 25 peak, with Jul 26 at "+utilPct[18].toFixed(0)+"%. Two straight months over 100% — headcount or a shift expansion is now the binding constraint."}
+      {c:"var(--up)",h:"Sustained growth all year",t:"YTD Jan–"+M+" "+YEAR[LAST]+" = "+fmt(ytd26)+" KG, up "+pct((ytd26-ytd25)/ytd25*100,1)+" vs prior year. "+(nPos===yoys.length?"All "+yoys.length+" months of 2026 post":nPos+" of "+yoys.length+" months of 2026 post")+" positive YoY growth ("+pct(yMin,0)+" to "+pct(yMax,0)+"), "+M+" "+y2+" at "+pct(yoys[yoys.length-1],0)+"."},
+      {c:"var(--accent)",h:"Fewer roasting days, faster days",t:M+" "+y2+" roasted "+fmt(actual[LAST])+" KG, "+pct((actual[LAST]-actual[LAST-1])/actual[LAST-1]*100,1)+" vs "+Mp+", on "+days[LAST]+" roasting days against "+days[LAST-1]+". Output per day rose to "+fmt(perday[LAST])+" KG"+(pdRecord?", the highest daily rate on record":"")+", so the dip is fewer days, not a slower team. "+lbl(peakI)+" ("+fmt(peak)+" KG) remains the highest month on record."},
+      {c:"var(--bar-2)",h:"Revenue lags volume growth",t:lbl(R)+" wholesale revenue "+whRev[R].toFixed(2)+" MB, "+pct(revYoY,0)+" YoY, against "+pct(volYoY,0)+" on volume. Wholesale Baht per roasted KG went "+fmt(bpk25)+" \u2192 "+fmt(bpk26)+" ("+pct((bpk26-bpk25)/bpk25*100,0)+"). Roast volume serves wholesale, FOH transfer and ecommerce while this line counts wholesale only, so check the channel split before reading it as a price move. Ecommerce added "+ecomRev[R].toFixed(2)+" MB ("+pct(ecomYoY,0)+" YoY)."},
+      {c:"var(--bar-2)",h:"Hotel blend is the growth engine",t:"Hotel-line blend went "+fmt(hotelYtd25)+" → "+fmt(hotelYtd26)+" KG YTD ("+pct((hotelYtd26-hotelYtd25)/hotelYtd25*100,0)+"), contributing "+pct(hotelShare,0).replace("+","")+" of total YTD growth. It runs on RM20, whose utilization rose from ~12% in early 2025 to "+(rmMax?"a record ":"")+rmU.toFixed(0)+"% in "+M+" "+y2+"."},
+      {c:"var(--down)",h:"Capacity ceiling reached",t:(run>=2?runTxt.charAt(0).toUpperCase()+runTxt.slice(1)+" above 100% of Manpower capacity ("+runList.join(", ")+"). ":M+" "+y2+" ran at "+utilPct[LAST].toFixed(0)+"% of Manpower capacity. ")+"Headcount or a shift expansion is now the binding constraint."}
     ];
     box.innerHTML=items.map(function(it){
       return '<div class="tk"><h3><span class="dot" style="background:'+it.c+'"></span>'+it.h+'</h3><p>'+it.t+'</p></div>';
@@ -805,7 +814,7 @@
   matchMedia("(prefers-color-scheme:dark)").addEventListener("change",function(){
     if(!document.documentElement.getAttribute("data-theme")){applyThemeLabel();renderAll();}});
 
-  function renderAll(){renderKPI();renderMain();renderYoY();renderGrowth();renderMix();renderMach();renderProd();renderTakeaways();}
+  function renderAll(){document.getElementById("wfYtdBtn").textContent="YTD Jan–"+LABELS[LAST];document.getElementById("wfLatestBtn").textContent="Latest month ("+LABELS[LAST]+")";renderKPI();renderMain();renderYoY();renderGrowth();renderMix();renderMach();renderProd();renderTakeaways();}
   applyThemeLabel();renderAll();
   window.addEventListener("resize",function(){/* svg is viewBox-scaled; tooltips reposition on hover */});
 })();

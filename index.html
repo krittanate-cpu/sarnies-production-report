@@ -287,7 +287,7 @@
               2026,2026,2026,2026,2026,2026,2026,2026,2026];
   var MONTHNUM = [1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9];
   var actual   = [3886,3653,4272,4303,3924,4103,4303,4608,4228,4926,5107,6122,5513,5476,5800,5687,5020,5138,6066,6547,6048];
-  var capacity = [4800,4800,4800,4800,4800,4800,4800,4800,5600,5600,5600,5600,6000,6000,6000,6000,6000,6000,6000,6000,6000];
+  var capacity = [4800,4800,4800,4800,4800,4800,4800,4800,5600,5600,5600,5600,6000,6000,6000,6000,6000,6000,6000,6000,7000];
   var days     = [24,20,21,26,24,22,25,25,24,29,28,28,29,25,28,24,29,29,30,30,25];
   var perday   = [162,183,203,166,163,186,172,184,176,170,182,219,190,219,207,237,173,177,202,218,242];
   var utilPct  = actual.map(function(a,i){return a/capacity[i]*100;});
@@ -772,12 +772,23 @@
     var run=0;for(var u=LAST;u>=0&&utilPct[u]>100;u--)run++;
     var runTxt=["","one month","two straight months","three straight months","four straight months","five straight months"][run]||(run+" straight months");
     var runList=[];for(var w=LAST-run+1;w<=LAST;w++)runList.push(LABELS[w]+" "+utilPct[w].toFixed(0)+"%");
+    var capItem;
+    if(capacity[LAST]>capacity[LAST-1]){
+      var pr=0;for(var v=LAST-1;v>=0&&utilPct[v]>100;v--)pr++;
+      var prList=[];for(var z=LAST-pr;z<LAST;z++)prList.push(LABELS[z]+" "+utilPct[z].toFixed(0)+"%");
+      var prTxt=["","one month","two straight months","three straight months","four straight months"][pr]||(pr+" straight months");
+      capItem={c:"var(--up)",h:"Capacity raised, headroom back",t:"Manpower capacity raised to "+fmt(capacity[LAST])+" KG in "+M+" "+y2+" (from "+fmt(capacity[LAST-1])+")"+(pr?", after "+prTxt+" above 100% ("+prList.join(", ")+")":"")+". "+M+" used "+utilPct[LAST].toFixed(0)+"% of the new ceiling, about "+fmt(capacity[LAST]-actual[LAST])+" KG of monthly headroom."};
+    }else if(run>=2){
+      capItem={c:"var(--down)",h:"Capacity ceiling reached",t:runTxt.charAt(0).toUpperCase()+runTxt.slice(1)+" above 100% of Manpower capacity ("+runList.join(", ")+"). Headcount or a shift expansion is now the binding constraint."};
+    }else{
+      capItem={c:"var(--bar-2)",h:"Capacity utilization",t:M+" "+y2+" ran at "+utilPct[LAST].toFixed(0)+"% of Manpower capacity ("+fmt(capacity[LAST])+" KG)."};
+    }
     var items=[
       {c:"var(--up)",h:"Sustained growth all year",t:"YTD Jan–"+M+" "+YEAR[LAST]+" = "+fmt(ytd26)+" KG, up "+pct((ytd26-ytd25)/ytd25*100,1)+" vs prior year. "+(nPos===yoys.length?"All "+yoys.length+" months of 2026 post":nPos+" of "+yoys.length+" months of 2026 post")+" positive YoY growth ("+pct(yMin,0)+" to "+pct(yMax,0)+"), "+M+" "+y2+" at "+pct(yoys[yoys.length-1],0)+"."},
       {c:"var(--accent)",h:"Fewer roasting days, faster days",t:M+" "+y2+" roasted "+fmt(actual[LAST])+" KG, "+pct((actual[LAST]-actual[LAST-1])/actual[LAST-1]*100,1)+" vs "+Mp+", on "+days[LAST]+" roasting days against "+days[LAST-1]+". Output per day rose to "+fmt(perday[LAST])+" KG"+(pdRecord?", the highest daily rate on record":"")+", so the dip is fewer days, not a slower team. "+lbl(peakI)+" ("+fmt(peak)+" KG) remains the highest month on record."},
       {c:"var(--bar-2)",h:"Revenue lags volume growth",t:lbl(R)+" wholesale revenue "+whRev[R].toFixed(2)+" MB, "+pct(revYoY,0)+" YoY, against "+pct(volYoY,0)+" on volume. Wholesale Baht per roasted KG went "+fmt(bpk25)+" \u2192 "+fmt(bpk26)+" ("+pct((bpk26-bpk25)/bpk25*100,0)+"). Roast volume serves wholesale, FOH transfer and ecommerce while this line counts wholesale only, so check the channel split before reading it as a price move. Ecommerce added "+ecomRev[R].toFixed(2)+" MB ("+pct(ecomYoY,0)+" YoY)."},
       {c:"var(--bar-2)",h:"Hotel blend is the growth engine",t:"Hotel-line blend went "+fmt(hotelYtd25)+" → "+fmt(hotelYtd26)+" KG YTD ("+pct((hotelYtd26-hotelYtd25)/hotelYtd25*100,0)+"), contributing "+pct(hotelShare,0).replace("+","")+" of total YTD growth. It runs on RM20, whose utilization rose from ~12% in early 2025 to "+(rmMax?"a record ":"")+rmU.toFixed(0)+"% in "+M+" "+y2+"."},
-      {c:"var(--down)",h:"Capacity ceiling reached",t:(run>=2?runTxt.charAt(0).toUpperCase()+runTxt.slice(1)+" above 100% of Manpower capacity ("+runList.join(", ")+"). ":M+" "+y2+" ran at "+utilPct[LAST].toFixed(0)+"% of Manpower capacity. ")+"Headcount or a shift expansion is now the binding constraint."}
+      capItem
     ];
     box.innerHTML=items.map(function(it){
       return '<div class="tk"><h3><span class="dot" style="background:'+it.c+'"></span>'+it.h+'</h3><p>'+it.t+'</p></div>';

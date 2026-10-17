@@ -157,7 +157,7 @@
     </div>
     <div class="headmeta">
       <button class="themebtn" id="themeToggle" aria-label="Toggle theme">🌗 <span id="themeLbl">Theme</span></button>
-      <span class="stamp">Data through Sep 2026 (full month) · Sep revenue posts after 10 Oct · refreshed 3 Oct 2026</span>
+      <span class="stamp">Data through Sep 2026 (full month) · refreshed 15 Oct 2026</span>
     </div>
   </header>
 
@@ -245,7 +245,7 @@
   <section class="card">
     <div class="sechead">
       <h2>Productivity &amp; Revenue</h2>
-      <span class="note">Headcount productivity, wholesale and ecommerce revenue · MB = million Baht · revenue tracked from Jul 2025 · Revenue per HC = wholesale ÷ headcount</span>
+      <span class="note">Headcount productivity, wholesale and ecommerce revenue · MB = million Baht · revenue tracked from Jul 2025 · Revenue per HC = wholesale ÷ headcount · headcount 7 from Sep 2026 (KG and Revenue per HC)</span>
     </div>
     <div class="prodstats" id="prodStats"></div>
     <div class="controls">
@@ -294,11 +294,11 @@
   var PARTIAL_IDX = -1; // no partial month: Sep 2026 is complete
 
   // Productivity & revenue (HC = headcount, MB = million Baht). Revenue tracked from Jul 2025.
-  var kgHC  = [777,731,854,861,785,821,861,922,846,821,851,1020,919,913,967,948,837,856,1011,1091,1008];
-  var whRev = [null,null,null,null,null,null,2.28,2.85,2.28,2.90,2.62,3.69,2.82,3.09,3.35,3.11,2.60,2.83,3.14,3.29,null];
-  var revHC = [null,null,null,null,null,null,0.46,0.57,0.46,0.48,0.44,0.61,0.47,0.52,0.56,0.52,0.43,0.47,0.52,0.55,null];
+  var kgHC  = [777,731,854,861,785,821,861,922,846,821,851,1020,919,913,967,948,837,856,1011,1091,864];
+  var whRev = [null,null,null,null,null,null,2.28,2.85,2.28,2.90,2.62,3.69,2.82,3.09,3.35,3.11,2.60,2.83,3.14,3.29,2.90];
+  var revHC = [null,null,null,null,null,null,0.46,0.57,0.46,0.48,0.44,0.61,0.47,0.52,0.56,0.52,0.43,0.47,0.52,0.55,0.41];
   // Ecommerce revenue (MB), sheet row "Ecom Revenue (MB)" — tracked from Jul 2025
-  var ecomRev = [null,null,null,null,null,null,0.16,0.19,0.16,0.20,0.21,0.24,0.33,0.32,0.43,0.35,0.47,0.42,0.36,0.41,null];
+  var ecomRev = [null,null,null,null,null,null,0.16,0.19,0.16,0.20,0.21,0.24,0.33,0.32,0.43,0.35,0.47,0.42,0.36,0.41,0.69];
 
   var blends = {
     "House Blend":    [2077,2111,2248,2684,2462,2337,2412,2728,2441,2830,2756,3468,3177,3019,3455,2580,2227,2355,2435,3293,2531],
